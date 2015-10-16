@@ -1,39 +1,37 @@
 #!/bin/bash
+# Last Changed: Fri 16 Oct 2015 08:29:27 AM CEST
+# Author:       Kinker Wen <hijack111@gmail.com>
+# Description:  Automatically change configuration of Mac OS X based on location
 
-# automatically change configuration of Mac OS X based on location
+# Example of airport output:
 
-# redirect all IO to /dev/null (comment this out if you want to debug)
-# exec 1>/dev/null 2>/dev/null
+#           .....: .........
+#            SSID: Kinker Wen’s iPhone
+#             MCS: 7
+#         channel: 1
 
-# get a little breather before we get data for things to settle down
-sleep 2
+# Example of scselect output:
 
-# get various system information
-SSID=`/System/Library/PrivateFrameworks/Apple80211.framework/Versions/A/Resources/airport -I\
- | grep ' SSID:' | cut -d ':' -f 2 | tr -d ' '`
+# Defined sets include: (* == current set)
+#  C .........UUID....................... (...SSID.......)
+#    FD131CDC-1997-4B72-A3CD-9480E035962D	(TP-LINK_4B9384)
+#  * 238D477A-0F62-4D66-9790-16D2D1553364	(Kinker Wen’s iPhone)
+#    3062DE7E-861F-4B85-BA4E-646EE414AD63	(NETGEAR)
 
-# basic pattern matching to get all location names separated by newlines
-LOCATION_NAMES=`scselect | tail -n +2 | cut -d "(" -f 2 | cut -d ")" -f 1`
-CURRENT_LOCATION=`scselect | grep " \* " | cut -d "(" -f 2 | cut -d ")" -f 1`
+# Get the connected WiFi SSID
+SSID=$(/System/Library/PrivateFrameworks/Apple80211.framework/Versions/A/Resources/airport -I\
+    | grep ' SSID:' | sed 's/^ *SSID: \(.*\)$/\1/')
 
-# no brackets as we the grep will return a status code depending on whether the SSID has an own Location
-if echo "$LOCATION_NAMES" | egrep -q "^$SSID$"; then
-  NEW_LOCATION="$SSID"
+# Unescape special character in SSID
+SSID_REGEX=$(<<< "${SSID}" sed 's/\([][\*.^$]\)/\\\1/g')
+
+# MATCH_LOC_UUID == '   UUID (SSID)'
+MATCH_LOC_UUID=$(scselect | tail -n +2 | grep "^[^(]*(${SSID_REGEX})$")
+
+# If there is no matching location, select Automatic (might not exist)
+if [ "${MATCH_LOC_UUID}" ]; then
+  scselect $(<<< "${MATCH_LOC_UUID}" sed 's/^.*\([0-9A-F-]\{36\}\).*$/\1/')
 else
-  # auto does not seem to be working on Mac OS X Lion, but Automatic does
-  if echo Automatic | grep -q "$LOCATION_NAMES"; then
-    NEW_LOCATION=Automatic
-  elif echo auto | grep -q "$LOCATION_NAMES"; then
-    NEW_LOCATION=auto
-  else
-    echo "Automatic location was not found!"
-    echo "The following locations are known:"
-    echo "$LOCATION_NAMES"
-  fi
-fi
-
-if [ "x$NEW_LOCATION" != "x" -a "x$NEW_LOCATION" != "x$CURRENT_LOCATION" ]; then
-    echo "Changing to $NEW_LOCATION"
-    scselect "$NEW_LOCATION"
+  scselect Automatic
 fi
 
