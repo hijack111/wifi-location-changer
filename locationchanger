@@ -1,5 +1,5 @@
 #!/bin/bash
-# Last Changed: Fri 16 Oct 2015 08:29:27 AM CEST
+# Last Changed: Fri 16 Oct 2015 09:22:51 AM CEST
 # Author:       Kinker Wen <hijack111@gmail.com>
 # Description:  Automatically change configuration of Mac OS X based on location
 
@@ -13,7 +13,7 @@
 # Example of scselect output:
 
 # Defined sets include: (* == current set)
-#  C .........UUID....................... (...SSID.......)
+#  C .........UUID.......................	(...SSID.......)
 #    FD131CDC-1997-4B72-A3CD-9480E035962D	(TP-LINK_4B9384)
 #  * 238D477A-0F62-4D66-9790-16D2D1553364	(Kinker Wen’s iPhone)
 #    3062DE7E-861F-4B85-BA4E-646EE414AD63	(NETGEAR)
