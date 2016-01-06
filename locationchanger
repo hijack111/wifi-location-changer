@@ -1,5 +1,4 @@
 #!/bin/bash
-# Last Changed: Fri 16 Oct 2015 09:22:51 AM CEST
 # Author:       Kinker Wen <hijack111@gmail.com>
 # Description:  Automatically change configuration of Mac OS X based on location
 
@@ -19,14 +18,11 @@
 #    3062DE7E-861F-4B85-BA4E-646EE414AD63	(NETGEAR)
 
 # Get the connected WiFi SSID
-SSID=$(/System/Library/PrivateFrameworks/Apple80211.framework/Versions/A/Resources/airport -I\
-    | grep ' SSID:' | sed 's/^ *SSID: \(.*\)$/\1/')
-
-# Unescape special character in SSID
-SSID_REGEX=$(<<< "${SSID}" sed 's/\([][\*.^$]\)/\\\1/g')
+SSID=$(/System/Library/PrivateFrameworks/Apple80211.framework/Versions/A/Resources/airport -I | \
+       sed -ne 's/^ *SSID: \(.*\)$/\1/p')
 
 # MATCH_LOC_UUID == '   UUID (SSID)'
-MATCH_LOC_UUID=$(scselect | tail -n +2 | grep "^[^(]*(${SSID_REGEX})$")
+MATCH_LOC_UUID=$(scselect | tail -n +2 | grep -F "$SSID")
 
 # If there is no matching location, select Automatic (might not exist)
 if [ "${MATCH_LOC_UUID}" ]; then
@@ -35,3 +31,7 @@ else
   scselect Automatic
 fi
 
+# Write WiFi information into ~/.wifi_info
+system_profiler SPNetworkDataType | \
+sed -ne '/^    Wi-Fi/,/Service Order/p' \
+> ~/.wifi_info

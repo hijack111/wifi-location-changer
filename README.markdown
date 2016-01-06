@@ -8,7 +8,4 @@ Simplified location changer based on http://tech.inhelsinki.nl/locationchanger/
 
 ##Installation
 
-    cp locationchanger /usr/local/bin
-    cp LocationChanger.plist ~/Library/LaunchAgents/
-    launchctl load ~/Library/LaunchAgents/LocationChanger.plist
-
+    make install
